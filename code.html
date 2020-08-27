@@ -1,0 +1,140 @@
+<!DOCTYPE HTML>
+<header>
+<title>Canvas Job</title>
+</header>
+<body>
+<canvas id="myCanvas" width="1000" height="900"></canvas>
+<script>
+
+var rb = {
+	0: [255, 000, 000],
+	1: [255, 127, 000],
+	2: [255, 192, 000],
+	3: [000, 255, 000],
+	4: [000, 000, 255],
+	5: [075, 000, 130],
+	6: [148, 000, 211],
+	7: [50, 50, 50],
+	norm: function(clr){
+		return [
+			Math.floor(clr[0]/255*215),
+			Math.floor(clr[1]/255*215),
+			Math.floor(clr[2]/255*215)
+		]
+	}
+}
+var clr = {
+	black : [0, 0, 0],
+	yellow: [255, 255, 0],
+	gray  : [192, 192, 192],
+	red   : [255, 100, 0],
+	blue  : [0, 100, 255],
+	addClr: function(clr0, clr1){
+		return [clr0[0]+clr1[0], clr0[1]+clr1[1], clr0[2]+clr1[2]];
+	},
+	incrSh: function(clr0, incr){
+		var factor = -10;
+		return [
+			64+(clr0[0]+incr*factor)%192,
+			64+(clr0[1]+incr*factor)%192,
+			64+(clr0[2]+incr*factor)%192
+		];
+	},
+	str   : function(clr){		// Pass colors to be avaraged in a [list].
+		retClr = [0, 0, 0];
+		for(var y in retClr){
+			for(var x in clr)
+				retClr[y] += clr[x][y];
+			retClr[y] = retClr[y] / clr.length;
+		}
+		return "rgba("+retClr[0]+","+retClr[1]+","+retClr[2]+", 0.5)";
+	}
+};
+
+function getActColor(linAddr){
+	var posInCol = Math.floor(linAddr / OUTLEN);
+	var posInRow = linAddr % OUTLEN;
+	//var posInCol = Math.floor(linAddr / OUTLEN);
+	//if(posInRow < 2 || posInRow > 4)
+	//	color = clr.red
+	return clr.str([
+		rb.norm(
+			rb[posInCol%OUTLEN]
+		)
+	]);
+}
+
+function ramMaker(baseX, baseY, ramShade){
+	var c = document.getElementById("myCanvas");
+	var ctx = c.getContext("2d");
+	for(var y=0; y<DEPTH; y++){
+		ctx.beginPath();
+		ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
+		// Print Row Number
+		var textStr = y < 10 ? '0'+y: String(y);
+		ctx.font = "25px monospace";
+		ctx.fillText(textStr, baseX-50, baseY+33+55*y);
+		for(var x=0; x<RAMNUM; x++){
+			ctx.beginPath();
+			ctx.rect(baseX+60*x, baseY+55*y, 45, 45);
+			ctx.strokeStyle = "#7A7AAA";
+			ctx.stroke();
+			ctx.fillStyle = getActColor(y*RAMNUM+x);
+			ctx.fill();
+			var posInRow = (y*RAMNUM+x) % OUTLEN;
+			var posInCol = Math.floor((y*RAMNUM+x) / OUTLEN);
+
+			
+			if(0)if(posInRow < HALOCNT || posInRow > OUTLEN-HALOCNT-1){
+				ofs = posInRow > OUTLEN-HALOCNT-1 ? 1 : 0;
+				ctx.beginPath();
+				ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+0.5) * Math.PI, (ofs+1.5) * Math.PI);
+				ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
+				ctx.fill();
+			}
+			//continue; // midium smart
+			if(0)if(posInCol%OUTLEN < HALOCNT || posInCol%OUTLEN > OUTLEN-HALOCNT-1){
+				ofs = posInCol%OUTLEN > OUTLEN-HALOCNT-1 ? 1 : 0;
+				ctx.beginPath();
+				ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+1) * Math.PI, (ofs+2) * Math.PI);
+				ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
+				ctx.fill();
+			}
+			if(x==0){		// print Index
+				ctx.beginPath();
+				ctx.font = "bold 25px monospace";
+				ctx.fillStyle = "rgba(20, 20, 20, 0.8)";
+				ctx.fillText(posInRow, baseX+15, baseY+32+55*y);
+			}
+		}
+	}
+	
+	if(!ramShade){
+		ctx.beginPath();
+		ctx.rect(baseX-7, baseY-5, 60*RAMNUM, DEPTH*55);
+		ctx.strokeStyle = "#272737";
+		ctx.stroke();
+	}
+	else for(var x=0; x<RAMNUM; x++){ 	// Rams
+		ctx.beginPath();
+		ctx.rect(baseX+60*x-3, baseY-5, 51, DEPTH*55);
+		ctx.strokeStyle = "#272737";
+		ctx.stroke();
+		// Print RAM NUMBER
+		ctx.beginPath();
+		ctx.font = "bold 25px monospace";
+		ctx.fillStyle = "rgba(40, 20, 20, 0.8)";
+		ctx.fillText(x, baseX+60*x+15, baseY-15);
+	}
+}
+
+var SARRDIM = 2, HALOCNT = 3; 
+var RAMNUM  = 16, DEPTH   = 10;
+var OUTLEN  = 7;
+
+ramMaker(55, 40, true);
+
+haloResolve([[chan0, chan1], [chan2, chan3]], 2);	
+
+</script>
+</body>

@@ -84,7 +84,6 @@ function ramMaker(baseX, baseY, ramShade){
 			var posInRow = (y*RAMNUM+x) % OUTLEN;
 			var posInCol = Math.floor((y*RAMNUM+x) / OUTLEN);
 
-			
 			if(0)if(posInRow < HALOCNT || posInRow > OUTLEN-HALOCNT-1){
 				ofs = posInRow > OUTLEN-HALOCNT-1 ? 1 : 0;
 				ctx.beginPath();

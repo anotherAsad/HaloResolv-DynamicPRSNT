@@ -3,7 +3,7 @@
 <title>Canvas Job</title>
 </header>
 <body>
-<canvas id="myCanvas" width="1000" height="900"></canvas>
+<canvas id="myCanvas" width="1200" height="600"></canvas>
 <script>
 
 var rb = {
@@ -23,6 +23,7 @@ var rb = {
 		]
 	}
 }
+
 var clr = {
 	black : [0, 0, 0],
 	yellow: [255, 255, 0],
@@ -40,7 +41,7 @@ var clr = {
 			64+(clr0[2]+incr*factor)%192
 		];
 	},
-	str   : function(clr){		// Pass colors to be avaraged in a [list].
+	str: function(clr){		// Pass colors to be avaraged in a [list].
 		retClr = [0, 0, 0];
 		for(var y in retClr){
 			for(var x in clr)
@@ -54,14 +55,23 @@ var clr = {
 function getActColor(linAddr){
 	var posInCol = Math.floor(linAddr / OUTLEN);
 	var posInRow = linAddr % OUTLEN;
-	//var posInCol = Math.floor(linAddr / OUTLEN);
-	//if(posInRow < 2 || posInRow > 4)
-	//	color = clr.red
+
 	return clr.str([
 		rb.norm(
 			rb[posInCol%OUTLEN]
 		)
 	]);
+}
+
+function sidePane(baseX, baseY){
+	var cnv = document.getElementById("myCanvas");
+	var ctx = cnv.getContext("2d");
+
+	ctx.beginPath();
+	ctx.font = "25px monospace";
+	ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
+	ctx.fillText("OUTLEN: "+OUTLEN, baseX, baseY);
+	ctx.fillText("DEPTH:  "+DEPTH, baseX, baseY + 25);
 }
 
 function ramMaker(baseX, baseY, ramShade){
@@ -83,7 +93,7 @@ function ramMaker(baseX, baseY, ramShade){
 			ctx.fill();
 			var posInRow = (y*RAMNUM+x) % OUTLEN;
 			var posInCol = Math.floor((y*RAMNUM+x) / OUTLEN);
-
+			// Left Halo print
 			if(0)if(posInRow < HALOCNT || posInRow > OUTLEN-HALOCNT-1){
 				ofs = posInRow > OUTLEN-HALOCNT-1 ? 1 : 0;
 				ctx.beginPath();
@@ -91,7 +101,7 @@ function ramMaker(baseX, baseY, ramShade){
 				ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
 				ctx.fill();
 			}
-			//continue; // midium smart
+			// Top Halo print
 			if(0)if(posInCol%OUTLEN < HALOCNT || posInCol%OUTLEN > OUTLEN-HALOCNT-1){
 				ofs = posInCol%OUTLEN > OUTLEN-HALOCNT-1 ? 1 : 0;
 				ctx.beginPath();
@@ -99,7 +109,8 @@ function ramMaker(baseX, baseY, ramShade){
 				ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
 				ctx.fill();
 			}
-			if(x==0){		// print Index
+			// print Index
+			if(0 && x==0){
 				ctx.beginPath();
 				ctx.font = "bold 25px monospace";
 				ctx.fillStyle = "rgba(20, 20, 20, 0.8)";
@@ -128,12 +139,12 @@ function ramMaker(baseX, baseY, ramShade){
 }
 
 var SARRDIM = 2, HALOCNT = 3; 
-var RAMNUM  = 16, DEPTH   = 10;
+var RAMNUM  = 7, DEPTH  = 7;
 var OUTLEN  = 7;
 
-ramMaker(55, 40, true);
-
-haloResolve([[chan0, chan1], [chan2, chan3]], 2);	
+ramMaker(55, 30, false);
+ramMaker(55+480, 30, false);
+sidePane(1055, 70);
 
 </script>
 </body>

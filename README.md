@@ -1,6 +1,7 @@
 # HaloResolv-DynamicPRSNT
 
 Vices of Halo Resolution:
+
 1) OUTLEN is variable
 2) RAMCNT is variable
 3) HALOLENGTH is variable
@@ -10,6 +11,7 @@ Vices of Halo Resolution:
 7) TILE DIMENSIONS  may not be equal. (Non-square HALOLENGTH and OUTLEN)
 
 Accelerator Hardware constraints:
+
 1) Max use of underlying architecture (dual port rams)
 2) Light-weight (Multiple instances)
 3) Low-latency (Because accelerator)
@@ -18,9 +20,12 @@ Accelerator Hardware constraints:
 =================================================================
 
 Prelude:
-Pseudo 3D convolution
+
+0) Why Halos
+1) Pseudo 3D convolution
 
 Main:
+
 0) Tiles.
 1) Halos in a single tile.
 2) Advantage of uniformity: Multiple tiles share the same assortement, Resolution in tiles is natural.
@@ -32,6 +37,7 @@ Main:
 6) Datapath.
 
 Extra:
+
 0) Critical path optimization, parameterized latency.
 1) RAM implementation tricks
 2) Throughput parameterization, variables of throughput

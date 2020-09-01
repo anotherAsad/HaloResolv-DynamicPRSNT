@@ -14,7 +14,7 @@ var rb = {
 	4: [000, 000, 255],
 	5: [075, 000, 130],
 	6: [148, 000, 211],
-	7: [50, 50, 50],
+	7: [050, 050, 050],
 	norm: function(clr){
 		return [
 			Math.floor(clr[0]/255*215),
@@ -70,8 +70,8 @@ function sidePane(baseX, baseY, ramFmt){
 	ctx.beginPath();
 	ctx.font = "25px monospace";
 	ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
-	ctx.fillText("OUTLEN: "+OUTLEN, baseX, baseY);
-	ctx.fillText("DEPTH:  "+DEPTH, baseX, baseY + 25);
+	ctx.fillText("DEPTH:  "+DEPTH, baseX, baseY);
+	ctx.fillText("OUTLEN: "+OUTLEN, baseX, baseY+25);
 	if(ramFmt)
 		ctx.fillText("RAMNUM: "+RAMNUM, baseX, baseY+50);
 	else{
@@ -152,7 +152,7 @@ var ramFmt = false;
 
 ramMaker(55, 40, ramFmt);
 ramMaker(55+480, 40, ramFmt);
-sidePane(1055, 70, ramFmt);
+sidePane(1000, 70, ramFmt);
 
 </script>
 </body>

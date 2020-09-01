@@ -34,3 +34,6 @@ Main:
 Extra:
 0) Critical path optimization, parameterized latency.
 1) RAM implementation tricks
+2) Throughput parameterization, variables of throughput
+3) Argument of high throughput: max usage of dual port RAMS
+4) Further speed up tactics (Top/Left parallelization)

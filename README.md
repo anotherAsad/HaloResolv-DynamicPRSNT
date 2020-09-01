@@ -17,7 +17,7 @@ Accelerator Hardware constraints:
 3) Low-latency (Because accelerator)
 4) Reuse (Efficiency of area and maximal commitment of resources.
 
-=================================================================
+========================================================
 
 Prelude:
 

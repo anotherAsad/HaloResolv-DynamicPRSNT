@@ -3,7 +3,7 @@
 <title>Canvas Job</title>
 </header>
 <body>
-<canvas id="myCanvas" width="1200" height="600"></canvas>
+<canvas id="myCanvas" width="1250" height="600"></canvas>
 <script>
 
 var rb = {
@@ -63,7 +63,7 @@ function getActColor(linAddr){
 	]);
 }
 
-function sidePane(baseX, baseY){
+function sidePane(baseX, baseY, ramFmt){
 	var cnv = document.getElementById("myCanvas");
 	var ctx = cnv.getContext("2d");
 
@@ -72,6 +72,12 @@ function sidePane(baseX, baseY){
 	ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
 	ctx.fillText("OUTLEN: "+OUTLEN, baseX, baseY);
 	ctx.fillText("DEPTH:  "+DEPTH, baseX, baseY + 25);
+	if(ramFmt)
+		ctx.fillText("RAMNUM: "+RAMNUM, baseX, baseY+50);
+	else{
+		ctx.fillText("Showing Output", baseX, baseY+60);
+		ctx.fillText("Tile(s).", baseX, baseY+85);
+	}
 }
 
 function ramMaker(baseX, baseY, ramShade){
@@ -142,9 +148,11 @@ var SARRDIM = 2, HALOCNT = 3;
 var RAMNUM  = 7, DEPTH  = 7;
 var OUTLEN  = 7;
 
-ramMaker(55, 30, false);
-ramMaker(55+480, 30, false);
-sidePane(1055, 70);
+var ramFmt = false;
+
+ramMaker(55, 40, ramFmt);
+ramMaker(55+480, 40, ramFmt);
+sidePane(1055, 70, ramFmt);
 
 </script>
 </body>

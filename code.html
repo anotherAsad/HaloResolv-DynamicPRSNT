@@ -66,18 +66,25 @@ function getActColor(linAddr){
 function sidePane(baseX, baseY, ramFmt){
 	var cnv = document.getElementById("myCanvas");
 	var ctx = cnv.getContext("2d");
-
-	ctx.beginPath();
+	var yOfs = 0;					// y-offset. Incremented for further sidepane additions. 
+	
 	ctx.font = "25px monospace";
-	ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
-	ctx.fillText("DEPTH:   "+DEPTH, baseX, baseY);
-	ctx.fillText("OUTLEN:  "+OUTLEN, baseX, baseY+25);
-	ctx.fillText("HALOLEN: "+HALOCNT, baseX, baseY+50);
+	var addLine = function(text){
+		ctx.beginPath();
+		ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
+		ctx.fillText(text, baseX, baseY+yOfs);
+		yOfs += 25;
+	}
+	addLine("RAM-DEPTH: "+DEPTH);
+	addLine("OUTLEN:    "+OUTLEN);
+	addLine("HALOLEN:   "+HALOCNT);
+	addLine("NUMFRAMES: "+Math.floor(DEPTH/OUTLEN));
 	if(ramFmt)
-		ctx.fillText("RAMNUM: "+RAMNUM, baseX, baseY+75);
+		addLine("RAMNUM:    "+RAMNUM);
 	else{
-		ctx.fillText("Showing Output", baseX, baseY+85);
-		ctx.fillText("Tile(s).", baseX, baseY+110);
+		yOfs += 10;
+		addLine("Showing Output");
+		addLine("Tile(s).");
 	}
 }
 
@@ -159,18 +166,18 @@ function ramMaker(baseX, baseY, ramShade){
 
 
 
-var SARRDIM = 2, HALOCNT = 3; 
+var SARRDIM = 2, HALOCNT = 2; 
 var RAMNUM  = 7, DEPTH  = 7;
 var OUTLEN  = 7;
 
 var ramFmt = false;
-var dir = {
-	LEFT: 0,
-	TOP: 0
+var isVisible = {
+	lHalo: 0,
+	tHalo: 0
 };
 
 titleSet(0, 30, "Slide 2", 15);
-titleSet(480, 30 , "A single Output Tile w/ Left Halos", 30);
+titleSet(480, 30 , "A single Output Tile", 30);
 ramMaker(55, 60, ramFmt);
 //ramMaker(55+480, 40, ramFmt);
 sidePane(1000, 80, ramFmt);

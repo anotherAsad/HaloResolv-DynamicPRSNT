@@ -70,14 +70,13 @@ function sidePane(baseX, baseY, ramFmt){
 	ctx.beginPath();
 	ctx.font = "25px monospace";
 	ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
-	ctx.fillText("DEPTH:   "+DEPTH, baseX, baseY);
-	ctx.fillText("OUTLEN:  "+OUTLEN, baseX, baseY+25);
-	ctx.fillText("HALOLEN: "+HALOCNT, baseX, baseY+50);
+	ctx.fillText("DEPTH:  "+DEPTH, baseX, baseY);
+	ctx.fillText("OUTLEN: "+OUTLEN, baseX, baseY+25);
 	if(ramFmt)
-		ctx.fillText("RAMNUM: "+RAMNUM, baseX, baseY+75);
+		ctx.fillText("RAMNUM: "+RAMNUM, baseX, baseY+50);
 	else{
-		ctx.fillText("Showing Output", baseX, baseY+85);
-		ctx.fillText("Tile(s).", baseX, baseY+110);
+		ctx.fillText("Showing Output", baseX, baseY+60);
+		ctx.fillText("Tile(s).", baseX, baseY+85);
 	}
 }
 
@@ -113,7 +112,7 @@ function ramMaker(baseX, baseY, ramShade){
 			var posInRow = (y*RAMNUM+x) % OUTLEN;
 			var posInCol = Math.floor((y*RAMNUM+x) / OUTLEN);
 			// Left Halo print
-			if(1)if(posInRow < HALOCNT || posInRow > OUTLEN-HALOCNT-1){
+			if(0)if(posInRow < HALOCNT || posInRow > OUTLEN-HALOCNT-1){
 				ofs = posInRow > OUTLEN-HALOCNT-1 ? 1 : 0;
 				ctx.beginPath();
 				ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+0.5) * Math.PI, (ofs+1.5) * Math.PI);
@@ -121,7 +120,7 @@ function ramMaker(baseX, baseY, ramShade){
 				ctx.fill();
 			}
 			// Top Halo print
-			if(1)if(posInCol%OUTLEN < HALOCNT || posInCol%OUTLEN > OUTLEN-HALOCNT-1){
+			if(0)if(posInCol%OUTLEN < HALOCNT || posInCol%OUTLEN > OUTLEN-HALOCNT-1){
 				ofs = posInCol%OUTLEN > OUTLEN-HALOCNT-1 ? 1 : 0;
 				ctx.beginPath();
 				ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+1) * Math.PI, (ofs+2) * Math.PI);
@@ -164,13 +163,8 @@ var RAMNUM  = 7, DEPTH  = 7;
 var OUTLEN  = 7;
 
 var ramFmt = false;
-var dir = {
-	LEFT: 0,
-	TOP: 0
-};
 
-titleSet(0, 30, "Slide 2", 15);
-titleSet(480, 30 , "A single Output Tile w/ Left Halos", 30);
+titleSet(500, 30 , "A single Output Tile", 30);
 ramMaker(55, 60, ramFmt);
 //ramMaker(55+480, 40, ramFmt);
 sidePane(1000, 80, ramFmt);

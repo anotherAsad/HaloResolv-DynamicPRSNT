@@ -1,9 +1,9 @@
 <!DOCTYPE HTML>
 <header>
-<title>Canvas Job</title>
+<title>A Single Output Tile</title>
 </header>
 <body>
-<canvas id="myCanvas" width="1250" height="600"></canvas>
+<canvas id="myCanvas" width="1250" height="1000"></canvas>
 <script>
 
 var rb = {
@@ -100,6 +100,17 @@ function titleSet(baseX, baseY, str, size){
 	return;
 }
 
+function drawMisc(){
+	var cnv = document.getElementById("myCanvas");
+	var ctx = cnv.getContext("2d");
+	// Draw seperator line between frames.
+	ctx.beginPath();
+	ctx.moveTo(46, 600);
+	ctx.lineTo(470, 450);
+	ctx.strokeStyle = "#272737";
+	ctx.stroke();
+}
+
 function ramMaker(baseX, baseY, ramShade){
 	var c = document.getElementById("myCanvas");
 	var ctx = c.getContext("2d");
@@ -120,21 +131,23 @@ function ramMaker(baseX, baseY, ramShade){
 			var posInRow = (y*RAMNUM+x) % OUTLEN;
 			var posInCol = Math.floor((y*RAMNUM+x) / OUTLEN);
 			// Left Halo print
-			if(1)if(posInRow < HALOCNT || posInRow > OUTLEN-HALOCNT-1){
-				ofs = posInRow > OUTLEN-HALOCNT-1 ? 1 : 0;
-				ctx.beginPath();
-				ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+0.5) * Math.PI, (ofs+1.5) * Math.PI);
-				ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
-				ctx.fill();
-			}
+			if(isVisible.lHalo)
+				if(posInRow < HALOCNT || posInRow > OUTLEN-HALOCNT-1){
+					ofs = posInRow > OUTLEN-HALOCNT-1 ? 1 : 0;
+					ctx.beginPath();
+					ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+0.5) * Math.PI, (ofs+1.5) * Math.PI);
+					ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
+					ctx.fill();
+				}
 			// Top Halo print
-			if(1)if(posInCol%OUTLEN < HALOCNT || posInCol%OUTLEN > OUTLEN-HALOCNT-1){
-				ofs = posInCol%OUTLEN > OUTLEN-HALOCNT-1 ? 1 : 0;
-				ctx.beginPath();
-				ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+1) * Math.PI, (ofs+2) * Math.PI);
-				ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
-				ctx.fill();
-			}
+			if(isVisible.tHalo)
+				if(posInCol%OUTLEN < HALOCNT || posInCol%OUTLEN > OUTLEN-HALOCNT-1){
+					ofs = posInCol%OUTLEN > OUTLEN-HALOCNT-1 ? 1 : 0;
+					ctx.beginPath();
+					ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+1) * Math.PI, (ofs+2) * Math.PI);
+					ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
+					ctx.fill();
+				}
 			// print Index
 			if(0 && x==0){
 				ctx.beginPath();
@@ -167,18 +180,19 @@ function ramMaker(baseX, baseY, ramShade){
 
 
 var SARRDIM = 2, HALOCNT = 2; 
-var RAMNUM  = 7, DEPTH  = 7;
+var RAMNUM  = 7, DEPTH  = 14;
 var OUTLEN  = 7;
 
 var ramFmt = false;
 var isVisible = {
-	lHalo: 0,
-	tHalo: 0
+	lHalo: false,
+	tHalo: false
 };
 
-titleSet(0, 30, "Slide 2", 15);
-titleSet(480, 30 , "A single Output Tile", 30);
+titleSet(1100, 30, "Page 1", 20);
+titleSet(480, 30 , "An Output Tile w/ 2 Frames", 30);
 ramMaker(55, 60, ramFmt);
+drawMisc();
 //ramMaker(55+480, 40, ramFmt);
 sidePane(1000, 80, ramFmt);
 

@@ -7,14 +7,14 @@
 <script>
 
 var rb = {
-	0: [050, 050, 050],
-	1: [255, 000, 000],
-	2: [255, 127, 000],
-	3: [255, 192, 000],
-	4: [000, 255, 000],
-	5: [000, 000, 255],
-	6: [075, 000, 130],
-	7: [148, 000, 211],
+	0: [255, 000, 000],
+	1: [255, 127, 000],
+	2: [255, 192, 000],
+	3: [000, 255, 000],
+	4: [000, 000, 255],
+	5: [075, 000, 130],
+	6: [148, 000, 211],
+	7: [050, 050, 050],
 	norm: function(clr){
 		return [
 			Math.floor(clr[0]/255*215),
@@ -55,29 +55,29 @@ var clr = {
 function getActColor(linAddr){
 	var posInCol = Math.floor(linAddr / OUTLEN);
 	var posInRow = linAddr % OUTLEN;
-		
+
 	return clr.str([
 		rb.norm(
-			rb[(posInCol%OUTLEN < 7)*(posInCol%OUTLEN + 1)]	// if the number is greater than 7, it become zero
+			rb[posInCol%OUTLEN]
 		)
 	]);
 }
 
-function sidePane(baseX, baseY, ramFmt, n){
-	var S; // Selection Predicate
+function sidePane(baseX, baseY, ramFmt){
+	var cnv = document.getElementById("myCanvas");
+	var ctx = cnv.getContext("2d");
 	var yOfs = 0;					// y-offset. Incremented for further sidepane additions. 
 	
 	ctx.font = "25px monospace";
 	var addLine = function(text){
-		S = yOfs/25==n ? String.fromCharCode(0x25C8) : " ";
 		ctx.beginPath();
 		ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
-		ctx.fillText(S+" "+text, baseX, baseY+yOfs);
+		ctx.fillText(text, baseX, baseY+yOfs);
 		yOfs += 25;
 	}
 	addLine("RAM-DEPTH: "+DEPTH);
 	addLine("OUTLEN:    "+OUTLEN);
-	addLine("HALOLEN:   "+HALOLEN);
+	addLine("HALOLEN:   "+HALOCNT);
 	addLine("NUMFRAMES: "+Math.floor(DEPTH/OUTLEN));
 	if(ramFmt)
 		addLine("RAMNUM:    "+RAMNUM);
@@ -89,6 +89,9 @@ function sidePane(baseX, baseY, ramFmt, n){
 }
 
 function titleSet(baseX, baseY, str, size){
+	var cnv = document.getElementById("myCanvas");
+	var ctx = cnv.getContext("2d");
+
 	ctx.beginPath();
 	ctx.font = size+"px monospace";
 	ctx.fillStyle = "rgba(28, 28, 25, 0.8)";
@@ -97,8 +100,10 @@ function titleSet(baseX, baseY, str, size){
 	return;
 }
 
-// Draw seperator line between frames.
 function drawMisc(){
+	var cnv = document.getElementById("myCanvas");
+	var ctx = cnv.getContext("2d");
+	// Draw seperator line between frames.
 	ctx.beginPath();
 	ctx.moveTo(48, 440);
 	ctx.lineTo(468, 440);
@@ -106,16 +111,16 @@ function drawMisc(){
 	ctx.stroke();
 }
 
-function ramMaker(baseX, baseY, ramShade, printRowNum){
+function ramMaker(baseX, baseY, ramShade){
+	var c = document.getElementById("myCanvas");
+	var ctx = c.getContext("2d");
 	for(var y=0; y<DEPTH; y++){
-		if(printRowNum == undefined){
-			ctx.beginPath();
-			ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
-			// Print Row Number
-			var textStr = y < 10 ? '0'+y: String(y);
-			ctx.font = "25px monospace";
-			ctx.fillText(textStr, baseX-50, baseY+33+55*y);
-		}
+		ctx.beginPath();
+		ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
+		// Print Row Number
+		var textStr = y < 10 ? '0'+y: String(y);
+		ctx.font = "25px monospace";
+		ctx.fillText(textStr, baseX-50, baseY+33+55*y);
 		for(var x=0; x<RAMNUM; x++){
 			ctx.beginPath();
 			ctx.rect(baseX+60*x, baseY+55*y, 45, 45);
@@ -127,8 +132,8 @@ function ramMaker(baseX, baseY, ramShade, printRowNum){
 			var posInCol = Math.floor((y*RAMNUM+x) / OUTLEN);
 			// Left Halo print
 			if(isVisible.lHalo)
-				if(posInRow < HALOLEN || posInRow > OUTLEN-HALOLEN-1){
-					ofs = posInRow > OUTLEN-HALOLEN-1 ? 1 : 0;
+				if(posInRow < HALOCNT || posInRow > OUTLEN-HALOCNT-1){
+					ofs = posInRow > OUTLEN-HALOCNT-1 ? 1 : 0;
 					ctx.beginPath();
 					ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+0.5) * Math.PI, (ofs+1.5) * Math.PI);
 					ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
@@ -136,8 +141,8 @@ function ramMaker(baseX, baseY, ramShade, printRowNum){
 				}
 			// Top Halo print
 			if(isVisible.tHalo)
-				if(posInCol%OUTLEN < HALOLEN || posInCol%OUTLEN > OUTLEN-HALOLEN-1){
-					ofs = posInCol%OUTLEN > OUTLEN-HALOLEN-1 ? 1 : 0;
+				if(posInCol%OUTLEN < HALOCNT || posInCol%OUTLEN > OUTLEN-HALOCNT-1){
+					ofs = posInCol%OUTLEN > OUTLEN-HALOCNT-1 ? 1 : 0;
 					ctx.beginPath();
 					ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+1) * Math.PI, (ofs+2) * Math.PI);
 					ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
@@ -172,68 +177,24 @@ function ramMaker(baseX, baseY, ramShade, printRowNum){
 	}
 }
 
-//////////////////////////////////////////////////// CONTROL SECTION //////////////////////////////////////////////////////
-function actionRoutine(){
-	titleSet(1100, 30, "Page 1", 20);
-	titleSet(380, 30 , "An Output Tile with all Halos", 30);
-	ramMaker(55, 80, ramFmt);
-	//ramMaker(55+480, 80, ramFmt, false);
-	//drawMisc();
-	sidePane(1000, 90, ramFmt, selection);
-}
 
-var selection = 0;
-var cnv = document.getElementById("myCanvas");
-var ctx = cnv.getContext("2d");
 
 var SARRDIM = 2, RAMNUM = 7; 
-var HALOLEN = 2, DEPTH = 7;
+var HALOCNT = 2, DEPTH = 14;
 var OUTLEN  = 7;
 
-var ramFmt = true;
+var ramFmt = false;
 var isVisible = {
-	lHalo: true,
-	tHalo: false
+	lHalo: false,
+	tHalo: true
 };
 
-actionRoutine();
+titleSet(1100, 30, "Page 1", 20);
+titleSet(420, 30 , "An Output Tile with Right Halos", 30);
+ramMaker(55, 60, ramFmt);
+drawMisc();
+//ramMaker(55+480, 60, ramFmt);
+sidePane(1000, 80, ramFmt);
 
-document.onkeydown = function(evt){
-	evt = evt || window.event;
-	switch(evt.keyCode){
-		case "L".charCodeAt(0):
-			isVisible.lHalo = !isVisible.lHalo;
-			break;
-		case "U".charCodeAt(0):
-			isVisible.tHalo = !isVisible.tHalo;
-			break;
-		case "S".charCodeAt(0):
-		case 37:
-		case 102:		// right or num-6 key
-			selection = selection == 4+ramFmt-1 ? 0 : selection+1;
-			break;
-		case "W".charCodeAt(0):
-		case 39:
-		case 105:		// left or num-7 key
-			selection = selection == 0 ? 4+ramFmt-1 : selection-1;
-			break;
-		case 107:		// numpad +
-			var delta = 1;
-		case 109:		// numpad -
-			var delta = delta == undefined ? -1 : delta;	// neg only if it was 109.
-			switch(selection){
-				case 0: DEPTH += delta; break;
-				case 1: OUTLEN += delta; break;
-				case 2: HALOLEN += delta; break;
-				case 3: DEPTH = (Math.floor(DEPTH/OUTLEN)+delta)*OUTLEN; break;
-				case 4: RAMNUM = ramFmt ? RAMNUM += delta : RAMNUM; break;
-			}
-			break;
-	}
-	// Redraw Routine
-	console.log(evt.keyCode);
-	ctx.clearRect(0, 0, cnv.width, cnv.height);
-	actionRoutine();
-};
 </script>
 </body>

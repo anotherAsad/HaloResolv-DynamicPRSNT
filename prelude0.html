@@ -25,14 +25,6 @@ var rb = {
 }
 
 var clr = {
-	black : [0, 0, 0],
-	yellow: [255, 255, 0],
-	gray  : [192, 192, 192],
-	red   : [255, 100, 0],
-	blue  : [0, 100, 255],
-	addClr: function(clr0, clr1){
-		return [clr0[0]+clr1[0], clr0[1]+clr1[1], clr0[2]+clr1[2]];
-	},
 	incrSh: function(clr0, incr){
 		var factor = -10;
 		return [
@@ -64,7 +56,7 @@ function getActColor(linAddr){
 }
 
 function sidePane(baseX, baseY, ramFmt, n){
-	var S; // Selection Predicate
+	var S; 							// Selection Predicate
 	var yOfs = 0;					// y-offset. Incremented for further sidepane additions. 
 	
 	ctx.font = "25px monospace";
@@ -75,17 +67,11 @@ function sidePane(baseX, baseY, ramFmt, n){
 		ctx.fillText(S+" "+text, baseX, baseY+yOfs);
 		yOfs += 25;
 	}
-	addLine("RAM-DEPTH: "+DEPTH);
-	addLine("OUTLEN:    "+OUTLEN);
-	addLine("HALOLEN:   "+HALOLEN);
-	addLine("NUMFRAMES: "+Math.floor(DEPTH/OUTLEN));
-	if(ramFmt)
-		addLine("RAMNUM:    "+RAMNUM);
-	else{
-		yOfs += 10;
-		addLine("Showing Output");
-		addLine("Tile(s).");
-	}
+	addLine("INLEN:   "+INLEN);
+	addLine("FILTLEN: "+FILTLEN);
+	yOfs += 10;
+	addLine("OUTLEN:  "+OUTLEN);
+	addLine("HALOLEN: "+HALOLEN);
 }
 
 function titleSet(baseX, baseY, str, size){
@@ -172,11 +158,47 @@ function ramMaker(baseX, baseY, ramShade, printRowNum){
 	}
 }
 
+// Filt x and y are relative coordinates
+// sqOfs = square placing offset
+function convTile(baseX, baseY, filtX, filtY, sqOfs){
+	for(var y=0; y < INLEN; y++)
+		for(var x=0; x < INLEN; x++){
+			ctx.beginPath();
+			ctx.rect(baseX+sqOfs*x, baseY+sqOfs*y, sqOfs-5, sqOfs-5);
+			ctx.strokeStyle = "#7A7AAA";
+			ctx.stroke();
+			ctx.fillStyle = clr.str([
+				[255, 165, 0]			// Orange.
+			]);
+			ctx.fill();
+		}
+	// Draw Edifice for INPUT TILE
+	ctx.beginPath();
+	ctx.rect(baseX-5, baseY-5, sqOfs*INLEN+5, sqOfs*INLEN+5);
+	ctx.strokeStyle = "#AAAAAA";
+	ctx.stroke();
+	// Draw FILTER
+	for(var y=0; y < FILTLEN; y++)
+		for(var x=0; x < FILTLEN; x++){
+			ctx.beginPath();
+			ctx.rect(baseX+sqOfs*(filtX+x), baseY+sqOfs*(filtY+y), sqOfs-5, sqOfs-5);
+			ctx.strokeStyle = "#7A7AAA";
+			ctx.stroke();
+			ctx.fillStyle = clr.str([
+				[233, 30, 99]			// Orange.
+			]);
+			ctx.fill();
+		}
+}
+
 //////////////////////////////////////////////////// CONTROL SECTION //////////////////////////////////////////////////////
 function actionRoutine(){
+	OUTLEN  = INLEN+FILTLEN-1;
+	HALOLEN = FILTLEN-1;
+	// Function Calls
 	titleSet(1100, 30, "Page 1", 20);
 	titleSet(380, 30 , "An Output Tile with all Halos", 30);
-	ramMaker(55, 80, ramFmt);
+	convTile(100, 150, filtX, filtY, 50);
 	//ramMaker(55+480, 80, ramFmt, false);
 	//drawMisc();
 	sidePane(1000, 90, ramFmt, selection);
@@ -186,9 +208,11 @@ var selection = 0;
 var cnv = document.getElementById("myCanvas");
 var ctx = cnv.getContext("2d");
 
-var SARRDIM = 2, RAMNUM = 7; 
-var HALOLEN = 2, DEPTH = 7;
-var OUTLEN  = 7;
+var filtX = -2, filtY = -2; 
+
+var INLEN = 8, FILTLEN = 3;
+var HALOLEN = FILTLEN-1;
+var OUTLEN  = INLEN+FILTLEN-1;
 
 var ramFmt = true;
 var isVisible = {
@@ -196,37 +220,39 @@ var isVisible = {
 	tHalo: false
 };
 
+////////////////////////////////////////////////////// REDRAW SECTION ///////////////////////////////////////////////////////
 actionRoutine();
 
 document.onkeydown = function(evt){
 	evt = evt || window.event;
 	switch(evt.keyCode){
-		case "L".charCodeAt(0):
-			isVisible.lHalo = !isVisible.lHalo;
+		case 104:		// NUM UP
+			filtY = filtY > -HALOLEN ? filtY-1 : filtY;
 			break;
-		case "U".charCodeAt(0):
-			isVisible.tHalo = !isVisible.tHalo;
+		case 101:		// NUM DOWN
+			filtY = filtY < INLEN-1 ? filtY+1 : filtY;
+			break;
+		case 102:
+			filtX = filtX < INLEN-1 ? filtX+1 : filtX;
+			break;
+		case 100:
+			filtX = filtX > -HALOLEN ? filtX-1 : filtX;
 			break;
 		case "S".charCodeAt(0):
-		case 37:
 		case 102:		// right or num-6 key
-			selection = selection == 4+ramFmt-1 ? 0 : selection+1;
+			selection = selection == 1+ramFmt-1 ? 0 : selection+1;
 			break;
 		case "W".charCodeAt(0):
-		case 39:
 		case 105:		// left or num-7 key
-			selection = selection == 0 ? 4+ramFmt-1 : selection-1;
+			selection = selection == 0 ? 1+ramFmt-1 : selection-1;
 			break;
 		case 107:		// numpad +
 			var delta = 1;
 		case 109:		// numpad -
 			var delta = delta == undefined ? -1 : delta;	// neg only if it was 109.
 			switch(selection){
-				case 0: DEPTH += delta; break;
-				case 1: OUTLEN += delta; break;
-				case 2: HALOLEN += delta; break;
-				case 3: DEPTH = (Math.floor(DEPTH/OUTLEN)+delta)*OUTLEN; break;
-				case 4: RAMNUM = ramFmt ? RAMNUM += delta : RAMNUM; break;
+				case 0: INLEN += delta; break;
+				case 1: FILTLEN += delta; break;
 			}
 			break;
 	}

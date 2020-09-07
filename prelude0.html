@@ -189,6 +189,39 @@ function convTile(baseX, baseY, filtX, filtY, sqOfs){
 			]);
 			ctx.fill();
 		}
+	return;
+}
+
+// sigX and sigY for convolution result highlighting.
+function outTile(baseX, baseY, sqOfs){
+	var sigX, sigY, color;
+	// Draw the OUTPUT tile
+	for(var y=0; y < OUTLEN; y++)
+		for(var x=0; x < OUTLEN; x++){
+			color = "rgba(76, 175, 80, 0.6)";	// Lime
+			if(x>=HALOLEN && x<INLEN && y>=HALOLEN && y<INLEN)
+				color = "rgba(255, 235, 59, 0.7)";
+			ctx.beginPath();
+			ctx.rect(baseX+sqOfs*x, baseY+sqOfs*y, sqOfs-5, sqOfs-5);
+			ctx.strokeStyle = "#7A7AAA";
+			ctx.stroke();
+			ctx.fillStyle = color;
+			ctx.fill();
+		}
+	// Draw Edifice for OUTPUT tile
+	ctx.beginPath();
+	ctx.rect(baseX-5, baseY-5, sqOfs*OUTLEN+5, sqOfs*OUTLEN+5);
+	ctx.strokeStyle = "#AAAAAA";
+	ctx.stroke();
+	// Shade Current OUTPUT element
+	sigX = filtX+HALOLEN;
+	sigY = filtY+HALOLEN;
+	ctx.beginPath();
+	ctx.rect(baseX+sqOfs*sigX, baseY+sqOfs*sigY, sqOfs-5, sqOfs-5);
+	ctx.strokeStyle = "#7A7AAA";
+	ctx.stroke();
+	ctx.fillStyle = color;
+	ctx.fill();
 }
 
 //////////////////////////////////////////////////// CONTROL SECTION //////////////////////////////////////////////////////
@@ -197,14 +230,15 @@ function actionRoutine(){
 	HALOLEN = FILTLEN-1;
 	// Function Calls
 	titleSet(1100, 30, "Page 1", 20);
-	titleSet(380, 30 , "An Output Tile with all Halos", 30);
-	convTile(100, 150, filtX, filtY, 50);
+	titleSet(420, 30 , "Why are Halos?", 30);
+	convTile(100, 150, filtX, filtY, sqOfs);
+	outTile(550, 150, sqOfs);
 	//ramMaker(55+480, 80, ramFmt, false);
 	//drawMisc();
 	sidePane(1000, 90, ramFmt, selection);
 }
 
-var selection = 0;
+var selection = 0, sqOfs = 44;
 var cnv = document.getElementById("myCanvas");
 var ctx = cnv.getContext("2d");
 
@@ -251,8 +285,8 @@ document.onkeydown = function(evt){
 		case 109:		// numpad -
 			var delta = delta == undefined ? -1 : delta;	// neg only if it was 109.
 			switch(selection){
-				case 0: INLEN += delta; break;
-				case 1: FILTLEN += delta; break;
+				case 0: INLEN = INLEN > FILTLEN || delta > 0 ? INLEN+delta : INLEN; break;
+				case 1: FILTLEN = FILTLEN > 0  || delta > 0 ? FILTLEN+delta : FILTLEN; break;
 			}
 			break;
 	}

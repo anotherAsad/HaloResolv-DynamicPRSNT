@@ -52,6 +52,15 @@ var clr = {
 	}
 };
 
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
+}
+
 function getActColor(linAddr){
 	var posInCol = Math.floor(linAddr / OUTLEN);
 	var posInRow = linAddr % OUTLEN;
@@ -75,7 +84,6 @@ function sidePane(baseX, baseY, ramFmt, n){
 		ctx.fillText(S+" "+text, baseX, baseY+yOfs);
 		yOfs += 25;
 	}
-	addLine("RAM-DEPTH: "+DEPTH);
 	addLine("OUTLEN:    "+OUTLEN);
 	addLine("HALOLEN:   "+HALOLEN);
 	addLine("NUMFRAMES: "+Math.floor(DEPTH/OUTLEN));
@@ -154,6 +162,7 @@ function ramMaker(baseX, baseY, ramShade, printRowNum){
 	}
 	
 	if(!ramShade){
+		return;
 		ctx.beginPath();
 		ctx.rect(baseX-7, baseY-5, 60*RAMNUM, DEPTH*55);
 		ctx.strokeStyle = "#272737";
@@ -176,12 +185,15 @@ function ramMaker(baseX, baseY, ramShade, printRowNum){
 function actionRoutine(){
 	titleSet(1100, 30, "Page 1", 20);
 	titleSet(380, 30 , "An Output Tile with all Halos", 30);
-	ramMaker(55, 80, ramFmt);
-	ramMaker(55+480, 80, ramFmt, false);
+	ramMaker(55, 80, ramFmt, false);
+	ramMaker(55+j, 80, ramFmt, false);
+	ramMaker(55, 80+k, ramFmt, false);
+	ramMaker(55+j, 80+k, ramFmt, false);
 	//drawMisc();
 	sidePane(1000, 90, ramFmt, selection);
 }
 
+var j = 8*60, k = 8*55;
 var selection = 0;
 var cnv = document.getElementById("myCanvas");
 var ctx = cnv.getContext("2d");
@@ -190,7 +202,7 @@ var SARRDIM = 2, RAMNUM = 7;
 var HALOLEN = 2, DEPTH = 7;
 var OUTLEN  = 7;
 
-var ramFmt = true;
+var ramFmt = false;
 var isVisible = {
 	lHalo: true,
 	tHalo: false
@@ -201,6 +213,9 @@ actionRoutine();
 document.onkeydown = function(evt){
 	evt = evt || window.event;
 	switch(evt.keyCode){
+		case "C".charCodeAt(0):
+			j = 8*60; k = 8*55;
+			break;
 		case "L".charCodeAt(0):
 			isVisible.lHalo = !isVisible.lHalo;
 			break;
@@ -208,13 +223,9 @@ document.onkeydown = function(evt){
 			isVisible.tHalo = !isVisible.tHalo;
 			break;
 		case "S".charCodeAt(0):
-		case 37:
-		case 102:		// right or num-6 key
 			selection = selection == 4+ramFmt-1 ? 0 : selection+1;
 			break;
 		case "W".charCodeAt(0):
-		case 39:
-		case 105:		// left or num-7 key
 			selection = selection == 0 ? 4+ramFmt-1 : selection-1;
 			break;
 		case 107:		// numpad +
@@ -222,12 +233,37 @@ document.onkeydown = function(evt){
 		case 109:		// numpad -
 			var delta = delta == undefined ? -1 : delta;	// neg only if it was 109.
 			switch(selection){
-				case 0: DEPTH += delta; break;
-				case 1: OUTLEN += delta; break;
-				case 2: HALOLEN += delta; break;
-				case 3: DEPTH = (Math.floor(DEPTH/OUTLEN)+delta)*OUTLEN; break;
-				case 4: RAMNUM = ramFmt ? RAMNUM += delta : RAMNUM; break;
+				case 0:
+					RAMNUM += delta;
+					OUTLEN += delta;
+					DEPTH  += delta;
+					break;
+				case 1: HALOLEN += delta; break;
+				case 2: DEPTH = (Math.floor(DEPTH/OUTLEN)+delta)*OUTLEN; break;
+				case 3: RAMNUM = ramFmt ? RAMNUM += delta : RAMNUM; break;
 			}
+			break;
+		case 88:
+			var intrvl = setInterval(function(){
+				if(j <= (OUTLEN-HALOLEN)*60){
+					clearInterval(intrvl);
+					return
+				}
+				j = j - 6;
+				ctx.clearRect(0, 0, cnv.width, cnv.height);
+				actionRoutine();
+			});
+			break;
+		case 90:
+			var intrvl = setInterval(function(){
+				if(k <= (OUTLEN-HALOLEN)*55){
+					clearInterval(intrvl);
+					return
+				}
+				k = k - 5.5;
+				ctx.clearRect(0, 0, cnv.width, cnv.height);
+				actionRoutine();
+			});
 			break;
 	}
 	// Redraw Routine

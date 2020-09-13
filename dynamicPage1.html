@@ -75,7 +75,6 @@ function sidePane(baseX, baseY, ramFmt, n){
 		ctx.fillText(S+" "+text, baseX, baseY+yOfs);
 		yOfs += 25;
 	}
-	addLine("RAM-DEPTH: "+DEPTH);
 	addLine("OUTLEN:    "+OUTLEN);
 	addLine("HALOLEN:   "+HALOLEN);
 	addLine("NUMFRAMES: "+Math.floor(DEPTH/OUTLEN));
@@ -218,11 +217,14 @@ document.onkeydown = function(evt){
 		case 109:		// numpad -
 			var delta = delta == undefined ? -1 : delta;	// neg only if it was 109.
 			switch(selection){
-				case 0: DEPTH += delta; break;
-				case 1: RAMNUM += delta; OUTLEN += delta; break;
-				case 2: HALOLEN += delta; break;
-				case 3: DEPTH = (Math.floor(DEPTH/OUTLEN)+delta)*OUTLEN; break;
-				case 4: RAMNUM = ramFmt ? RAMNUM += delta : RAMNUM; break;
+				case 0:
+					RAMNUM += delta;
+					OUTLEN += delta;
+					DEPTH  += delta;
+					break;
+				case 1: HALOLEN += delta; break;
+				case 2: DEPTH = (Math.floor(DEPTH/OUTLEN)+delta)*OUTLEN; break;
+				case 3: RAMNUM = ramFmt ? RAMNUM += delta : RAMNUM; break;
 			}
 			break;
 	}

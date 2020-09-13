@@ -1,0 +1,302 @@
+<!DOCTYPE HTML>
+<header>
+<title>A Single Output Tile</title>
+</header>
+<body>
+<canvas id="myCanvas" width="1250" height="1000"></canvas>
+<script>
+
+var rb = {
+	0: [050, 050, 050],
+	1: [255, 000, 000],
+	2: [255, 127, 000],
+	3: [255, 192, 000],
+	4: [000, 255, 000],
+	5: [000, 000, 255],
+	6: [075, 000, 130],
+	7: [148, 000, 211],
+	norm: function(clr){
+		return [
+			Math.floor(clr[0]/255*215),
+			Math.floor(clr[1]/255*215),
+			Math.floor(clr[2]/255*215)
+		]
+	}
+}
+
+var clr = {
+	incrSh: function(clr0, incr){
+		var factor = -10;
+		return [
+			64+(clr0[0]+incr*factor)%192,
+			64+(clr0[1]+incr*factor)%192,
+			64+(clr0[2]+incr*factor)%192
+		];
+	},
+	str: function(clr){		// Pass colors to be avaraged in a [list].
+		retClr = [0, 0, 0];
+		for(var y in retClr){
+			for(var x in clr)
+				retClr[y] += clr[x][y];
+			retClr[y] = retClr[y] / clr.length;
+		}
+		return "rgba("+retClr[0]+","+retClr[1]+","+retClr[2]+", 0.5)";
+	}
+};
+
+function getActColor(linAddr){
+	var posInCol = Math.floor(linAddr / OUTLEN);
+	var posInRow = linAddr % OUTLEN;
+		
+	return clr.str([
+		rb.norm(
+			rb[(posInCol%OUTLEN < 7)*(posInCol%OUTLEN + 1)]	// if the number is greater than 7, it become zero
+		)
+	]);
+}
+
+function sidePane(baseX, baseY, ramFmt, n){
+	var S; 							// Selection Predicate
+	var yOfs = 0;					// y-offset. Incremented for further sidepane additions. 
+	
+	ctx.font = "25px monospace";
+	var addLine = function(text){
+		S = yOfs/25==n ? String.fromCharCode(0x25C8) : " ";
+		ctx.beginPath();
+		ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
+		ctx.fillText(S+" "+text, baseX, baseY+yOfs);
+		yOfs += 25;
+	}
+	addLine("INLEN:   "+INLEN);
+	addLine("FILTLEN: "+FILTLEN);
+	yOfs += 10;
+	addLine("OUTLEN:  "+OUTLEN);
+	addLine("HALOLEN: "+HALOLEN);
+}
+
+function titleSet(baseX, baseY, str, size){
+	ctx.beginPath();
+	ctx.font = size+"px monospace";
+	ctx.fillStyle = "rgba(28, 28, 25, 0.8)";
+	ctx.fillText(str, baseX, baseY);
+
+	return;
+}
+
+// Draw seperator line between frames.
+function drawMisc(){
+	ctx.beginPath();
+	ctx.moveTo(48, 440);
+	ctx.lineTo(468, 440);
+	ctx.strokeStyle = "#272737";
+	ctx.stroke();
+}
+
+function ramMaker(baseX, baseY, ramShade, printRowNum){
+	for(var y=0; y<DEPTH; y++){
+		if(printRowNum == undefined){
+			ctx.beginPath();
+			ctx.fillStyle = "rgba(30, 30, 30, 0.7)";
+			// Print Row Number
+			var textStr = y < 10 ? '0'+y: String(y);
+			ctx.font = "25px monospace";
+			ctx.fillText(textStr, baseX-50, baseY+33+55*y);
+		}
+		for(var x=0; x<RAMNUM; x++){
+			ctx.beginPath();
+			ctx.rect(baseX+60*x, baseY+55*y, 45, 45);
+			ctx.strokeStyle = "#7A7AAA";
+			ctx.stroke();
+			ctx.fillStyle = getActColor(y*RAMNUM+x);
+			ctx.fill();
+			var posInRow = (y*RAMNUM+x) % OUTLEN;
+			var posInCol = Math.floor((y*RAMNUM+x) / OUTLEN);
+			// Left Halo print
+			if(isVisible.lHalo)
+				if(posInRow < HALOLEN || posInRow > OUTLEN-HALOLEN-1){
+					ofs = posInRow > OUTLEN-HALOLEN-1 ? 1 : 0;
+					ctx.beginPath();
+					ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+0.5) * Math.PI, (ofs+1.5) * Math.PI);
+					ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
+					ctx.fill();
+				}
+			// Top Halo print
+			if(isVisible.tHalo)
+				if(posInCol%OUTLEN < HALOLEN || posInCol%OUTLEN > OUTLEN-HALOLEN-1){
+					ofs = posInCol%OUTLEN > OUTLEN-HALOLEN-1 ? 1 : 0;
+					ctx.beginPath();
+					ctx.arc(baseX+60*x+22, baseY+55*y+22, 20, (ofs+1) * Math.PI, (ofs+2) * Math.PI);
+					ctx.fillStyle = clr.incrSh(getActColor(y*RAMNUM+x), 3);
+					ctx.fill();
+				}
+			// print Index
+			if(0 && x==0){
+				ctx.beginPath();
+				ctx.font = "bold 25px monospace";
+				ctx.fillStyle = "rgba(20, 20, 20, 0.8)";
+				ctx.fillText(posInRow, baseX+15, baseY+32+55*y);
+			}
+		}
+	}
+	
+	if(!ramShade){
+		ctx.beginPath();
+		ctx.rect(baseX-7, baseY-5, 60*RAMNUM, DEPTH*55);
+		ctx.strokeStyle = "#272737";
+		ctx.stroke();
+	}
+	else for(var x=0; x<RAMNUM; x++){ 	// Rams
+		ctx.beginPath();
+		ctx.rect(baseX+60*x-3, baseY-5, 51, DEPTH*55);
+		ctx.strokeStyle = "#272737";
+		ctx.stroke();
+		// Print RAM NUMBER
+		ctx.beginPath();
+		ctx.font = "bold 25px monospace";
+		ctx.fillStyle = "rgba(40, 20, 20, 0.8)";
+		ctx.fillText(x, baseX+60*x+15, baseY-15);
+	}
+}
+
+// Filt x and y are relative coordinates
+// sqOfs = square placing offset
+function convTile(baseX, baseY, filtX, filtY, sqOfs){
+	for(var y=0; y < INLEN; y++)
+		for(var x=0; x < INLEN; x++){
+			ctx.beginPath();
+			ctx.rect(baseX+sqOfs*x, baseY+sqOfs*y, sqOfs-5, sqOfs-5);
+			ctx.strokeStyle = "#7A7AAA";
+			ctx.stroke();
+			ctx.fillStyle = clr.str([
+				[255, 165, 0]			// Orange.
+			]);
+			ctx.fill();
+		}
+	// Draw Edifice for INPUT TILE
+	ctx.beginPath();
+	ctx.rect(baseX-5, baseY-5, sqOfs*INLEN+5, sqOfs*INLEN+5);
+	ctx.strokeStyle = "#AAAAAA";
+	ctx.stroke();
+	// Draw FILTER
+	for(var y=0; y < FILTLEN; y++)
+		for(var x=0; x < FILTLEN; x++){
+			ctx.beginPath();
+			ctx.rect(baseX+sqOfs*(filtX+x), baseY+sqOfs*(filtY+y), sqOfs-5, sqOfs-5);
+			ctx.strokeStyle = "#7A7AAA";
+			ctx.stroke();
+			ctx.fillStyle = clr.str([
+				[233, 30, 99]			// Orange.
+			]);
+			ctx.fill();
+		}
+	return;
+}
+
+// sigX and sigY for convolution result highlighting.
+function outTile(baseX, baseY, sqOfs){
+	var sigX, sigY, color;
+	// Draw the OUTPUT tile
+	for(var y=0; y < OUTLEN; y++)
+		for(var x=0; x < OUTLEN; x++){
+			color = "rgba(76, 175, 80, 0.6)";	// Lime
+			if(x>=HALOLEN && x<INLEN && y>=HALOLEN && y<INLEN)
+				color = "rgba(255, 235, 59, 0.7)";
+			ctx.beginPath();
+			ctx.rect(baseX+sqOfs*x, baseY+sqOfs*y, sqOfs-5, sqOfs-5);
+			ctx.strokeStyle = "#7A7AAA";
+			ctx.stroke();
+			ctx.fillStyle = color;
+			ctx.fill();
+		}
+	// Draw Edifice for OUTPUT tile
+	ctx.beginPath();
+	ctx.rect(baseX-5, baseY-5, sqOfs*OUTLEN+5, sqOfs*OUTLEN+5);
+	ctx.strokeStyle = "#AAAAAA";
+	ctx.stroke();
+	// Shade Current OUTPUT element
+	sigX = filtX+HALOLEN;
+	sigY = filtY+HALOLEN;
+	ctx.beginPath();
+	ctx.rect(baseX+sqOfs*sigX, baseY+sqOfs*sigY, sqOfs-5, sqOfs-5);
+	ctx.strokeStyle = "#7A7AAA";
+	ctx.stroke();
+	ctx.fillStyle = color;
+	ctx.fill();
+}
+
+//////////////////////////////////////////////////// CONTROL SECTION //////////////////////////////////////////////////////
+function actionRoutine(){
+	OUTLEN  = INLEN+FILTLEN-1;
+	HALOLEN = FILTLEN-1;
+	// Function Calls
+	titleSet(1100, 30, "Page 1", 20);
+	titleSet(420, 30 , "Why are Halos?", 30);
+
+	outTile(350-50, 150-50, sqOfs);
+	outTile(350+4*sqOfs+50, 150-50, sqOfs);
+	outTile(350+4*sqOfs+50, 150+4*sqOfs+50, sqOfs);
+	outTile(350-50, 150+4*sqOfs+50, sqOfs);
+	//ramMaker(55+480, 80, ramFmt, false);
+	//drawMisc();
+	sidePane(1000, 90, ramFmt, selection);
+}
+
+var selection = 0, sqOfs = 44;
+var cnv = document.getElementById("myCanvas");
+var ctx = cnv.getContext("2d");
+
+var filtX = -1, filtY = -1; 
+
+var INLEN = 4, FILTLEN = 2;
+var HALOLEN = FILTLEN-1;
+var OUTLEN  = INLEN+FILTLEN-1;
+
+var ramFmt = true;
+var isVisible = {
+	lHalo: true,
+	tHalo: false
+};
+
+////////////////////////////////////////////////////// REDRAW SECTION ///////////////////////////////////////////////////////
+actionRoutine();
+
+document.onkeydown = function(evt){
+	evt = evt || window.event;
+	switch(evt.keyCode){
+		case 104:		// NUM UP
+			filtY = filtY > -HALOLEN ? filtY-1 : filtY;
+			break;
+		case 101:		// NUM DOWN
+			filtY = filtY < INLEN-1 ? filtY+1 : filtY;
+			break;
+		case 102:
+			filtX = filtX < INLEN-1 ? filtX+1 : filtX;
+			break;
+		case 100:
+			filtX = filtX > -HALOLEN ? filtX-1 : filtX;
+			break;
+		case "S".charCodeAt(0):
+		case 102:		// right or num-6 key
+			selection = selection == 1+ramFmt-1 ? 0 : selection+1;
+			break;
+		case "W".charCodeAt(0):
+		case 105:		// left or num-7 key
+			selection = selection == 0 ? 1+ramFmt-1 : selection-1;
+			break;
+		case 107:		// numpad +
+			var delta = 1;
+		case 109:		// numpad -
+			var delta = delta == undefined ? -1 : delta;	// neg only if it was 109.
+			switch(selection){
+				case 0: INLEN = INLEN > FILTLEN || delta > 0 ? INLEN+delta : INLEN; break;
+				case 1: FILTLEN = FILTLEN > 0  || delta > 0 ? FILTLEN+delta : FILTLEN; break;
+			}
+			break;
+	}
+	// Redraw Routine
+	console.log(evt.keyCode);
+	ctx.clearRect(0, 0, cnv.width, cnv.height);
+	actionRoutine();
+};
+</script>
+</body>
